@@ -16,6 +16,9 @@ local player2
 local ball
 
 function love.load()
+    -- Setting randomseed using os time
+    math.randomseed(os.time())
+
     -- Initialize game state
     gameState = "start"
 
@@ -46,6 +49,34 @@ end
 
 function love.update(dt)
     if gameState == "play" then
+
+        -- Detecting collision with players
+        if ball:collides(player1) then
+            ball.x = player1.x + player1.width + 1
+            ball.dx = -ball.dx * 1.05
+
+            local paddleCenter = player1.y + player1.height / 2
+            local ballCenter = ball.y + ball.size / 2
+            if ballCenter < paddleCenter then
+                ball.dy = -math.random(0, 200)
+            elseif ballCenter > paddleCenter then
+                ball.dy = math.random(0, 200)
+            else
+                ball.dy = 0
+            end
+        elseif ball:collides(player2) then
+            ball.x = player2.x - ball.size - 1
+            ball.dx = -ball.dx * 1.05
+
+            local paddleCenter = player2.y + player2.height / 2
+            local ballCenter = ball.y + ball.size / 2
+            if ballCenter <= paddleCenter then
+                ball.dy = -math.random(0, 150)
+            elseif ballCenter > paddleCenter then
+                ball.dy = math.random(0, 150)
+            end
+        end
+
         ball:update(dt)
     end
 
@@ -94,6 +125,8 @@ function love.draw()
     love.graphics.setFont(smallFont)
     love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
     love.graphics.printf("Game state: " .. gameState, 0, 30, VIRTUAL_WIDTH, "center")
+    love.graphics.printf("Ball dx: " .. tostring(ball.dx), 0, 40, VIRTUAL_WIDTH, "center")
+    love.graphics.printf("Ball dx: " .. tostring(ball.dy), 0, 50, VIRTUAL_WIDTH, "center")
 
     -- Display the scores
     love.graphics.setFont(scoreFont)
