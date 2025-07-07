@@ -1,5 +1,6 @@
 require "configs"
 require "fonts"
+require "models.Paddle"
 require "models.Ball"
 
 push = require "src.lib.push"
@@ -8,6 +9,10 @@ push = require "src.lib.push"
 local gameState
 local player1Score
 local player2Score
+
+local player1
+local player2
+
 local ball
 
 function love.load()
@@ -17,6 +22,10 @@ function love.load()
     -- Initialize scores
     player1Score = 0
     player2Score = 0
+
+    -- Initialize paddles
+    player1 = Paddle(10, 30, PADDLE_WIDTH, PADDLE_HEIGHT)
+    player2 = Paddle(VIRTUAL_WIDTH - PADDLE_WIDTH - 10, VIRTUAL_HEIGHT - PADDLE_HEIGHT - 30, PADDLE_WIDTH, PADDLE_HEIGHT)
 
     -- Initialize the ball
     ball = Ball(BALL_SIZE)
@@ -39,6 +48,27 @@ function love.update(dt)
     if gameState == "play" then
         ball:update(dt)
     end
+
+    -- Player 1 movement
+    if love.keyboard.isDown("w") then
+        player1.dy = -PADDLE_SPEED
+    elseif love.keyboard.isDown("s") then
+        player1.dy = PADDLE_SPEED
+    else
+        player1.dy = 0        
+    end
+
+    -- Player 2 movement
+    if love.keyboard.isDown("up") then
+        player2.dy = -PADDLE_SPEED
+    elseif love.keyboard.isDown("down") then
+        player2.dy = PADDLE_SPEED
+    else
+        player2.dy = 0
+    end
+
+    player1:update(dt)
+    player2:update(dt)
 end
 
 function love.keypressed(key)
@@ -70,6 +100,10 @@ function love.draw()
     love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
     love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
 
+    -- Display the paddles
+    player1:render()
+    player2:render()
+    
     -- Display the ball
     ball:render()
 
