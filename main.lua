@@ -1,15 +1,25 @@
 require "configs"
 require "fonts"
+require "models.Ball"
 
 push = require "src.lib.push"
 
+
+local gameState
 local player1Score
 local player2Score
+local ball
 
 function love.load()
+    -- Initialize game state
+    gameState = "start"
+
     -- Initialize scores
     player1Score = 0
     player2Score = 0
+
+    -- Initialize the ball
+    ball = Ball(BALL_SIZE)
 
     -- Setting up screen
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -26,6 +36,22 @@ function love.resize(w, h)
 end
 
 function love.update(dt)
+    if gameState == "play" then
+        ball:update(dt)
+    end
+end
+
+function love.keypressed(key)
+    if key == "escape" then
+        love.event.quit()
+    elseif key == "return" or key == "kpenter" then
+        if gameState == "start" then
+            gameState = "play"
+        elseif gameState == "play" then
+            ball:reset()
+            gameState = "start"
+        end
+    end
 end
 
 function love.draw()
@@ -34,10 +60,18 @@ function love.draw()
     -- Set the background color
     love.graphics.clear(40 / 255, 45 / 255, 52 / 255, 255 / 255)
 
-    -- Draw the scores
+    -- Display auxiliary text
+    love.graphics.setFont(smallFont)
+    love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
+    love.graphics.printf("Game state: " .. gameState, 0, 30, VIRTUAL_WIDTH, "center")
+
+    -- Display the scores
     love.graphics.setFont(scoreFont)
     love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
-    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 50, VIRTUAL_HEIGHT / 3)
+    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
+
+    -- Display the ball
+    ball:render()
 
     -- Display FPS
     displayFPS()
