@@ -5,7 +5,6 @@ require "models.Ball"
 
 push = require "src.lib.push"
 
-
 local gameState
 local player1Score
 local player2Score
@@ -28,7 +27,7 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
-    -- Initialize serving player
+    -- Initialize serving and winning player
     servingPlayer = 1
     winningPlayer = 0
 
@@ -147,7 +146,7 @@ function love.keypressed(key)
         elseif gameState == "win" then
             player1Score = 0
             player2Score = 0
-            gameState = "start"
+            gameState = "serve"
         end
     end
 end
@@ -160,10 +159,16 @@ function love.draw()
 
     -- Display auxiliary text
     love.graphics.setFont(smallFont)
-    love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
-    love.graphics.printf("Game state: " .. gameState, 0, 30, VIRTUAL_WIDTH, "center")
-    love.graphics.printf("Ball dx: " .. tostring(ball.dx), 0, 40, VIRTUAL_WIDTH, "center")
-    love.graphics.printf("Ball dy: " .. tostring(ball.dy), 0, 50, VIRTUAL_WIDTH, "center")
+    if gameState == "start" then
+        love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
+        love.graphics.printf("Press Enter to start a game", 0, 30, VIRTUAL_WIDTH, "center")
+    elseif gameState == "serve" then
+        love.graphics.printf("Player " .. tostring(servingPlayer) .. " serves!", 0, 20, VIRTUAL_WIDTH, "center")
+        love.graphics.printf("Press Enter to serve", 0, 30, VIRTUAL_WIDTH, "center")
+    elseif gameState == "win" then
+        love.graphics.printf("Player " .. tostring(winningPlayer) .. " won!", 0, 20, VIRTUAL_WIDTH, "center")
+        love.graphics.printf("Press Enter to start a new game", 0, 30, VIRTUAL_WIDTH, "center")
+    end
 
     -- Display the scores
     love.graphics.setFont(scoreFont)
