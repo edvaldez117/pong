@@ -7,10 +7,11 @@ function Ball:init(size)
     self:reset()
 end
 
-function Ball:reset()
+function Ball:reset(direction)
+    direction = direction or "right"
     self.x = VIRTUAL_WIDTH / 2 - self.size / 2
     self.y = VIRTUAL_HEIGHT / 2 - self.size / 2
-    self.dx = 75
+    self.dx = direction == "right" and 75 or -75
     self.dy = math.random(-100, 100)
 end
 

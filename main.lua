@@ -9,6 +9,8 @@ push = require "src.lib.push"
 local gameState
 local player1Score
 local player2Score
+local servingPlayer
+local winningPlayer
 
 local player1
 local player2
@@ -25,6 +27,10 @@ function love.load()
     -- Initialize scores
     player1Score = 0
     player2Score = 0
+
+    -- Initialize serving player
+    servingPlayer = 1
+    winningPlayer = 0
 
     -- Initialize paddles
     player1 = Paddle(10, 30, PADDLE_WIDTH, PADDLE_HEIGHT)
@@ -49,7 +55,6 @@ end
 
 function love.update(dt)
     if gameState == "play" then
-
         -- Detecting collision with players
         if ball:collides(player1) then
             ball.x = player1.x + player1.width + 1
@@ -74,6 +79,29 @@ function love.update(dt)
                 ball.dy = -math.random(0, 150)
             elseif ballCenter > paddleCenter then
                 ball.dy = math.random(0, 150)
+            end
+        end
+
+        -- Detecting if a player scores a point
+        if ball.x <= 0 then
+            player2Score = player2Score + 1
+            servingPlayer = 1
+            ball:reset()
+            if player2Score == WINNING_POINTS then
+                winningPlayer = 2
+                gameState = "win"
+            else 
+                gameState = "serve"
+            end
+        elseif ball.x + ball.size >= VIRTUAL_WIDTH then
+            player1Score = player1Score + 1
+            servingPlayer = 2
+            ball:reset("left")
+            if player1Score == WINNING_POINTS then
+                winningPlayer = 1
+                gameState = "win"
+            else 
+                gameState = "serve"
             end
         end
 
@@ -107,9 +135,18 @@ function love.keypressed(key)
         love.event.quit()
     elseif key == "return" or key == "kpenter" then
         if gameState == "start" then
+            gameState = "serve"
+        elseif gameState == "serve" then
             gameState = "play"
         elseif gameState == "play" then
+            player1Score = 0
+            player2Score = 0
+            servingPlayer = 1
             ball:reset()
+            gameState = "start"
+        elseif gameState == "win" then
+            player1Score = 0
+            player2Score = 0
             gameState = "start"
         end
     end
@@ -126,7 +163,7 @@ function love.draw()
     love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
     love.graphics.printf("Game state: " .. gameState, 0, 30, VIRTUAL_WIDTH, "center")
     love.graphics.printf("Ball dx: " .. tostring(ball.dx), 0, 40, VIRTUAL_WIDTH, "center")
-    love.graphics.printf("Ball dx: " .. tostring(ball.dy), 0, 50, VIRTUAL_WIDTH, "center")
+    love.graphics.printf("Ball dy: " .. tostring(ball.dy), 0, 50, VIRTUAL_WIDTH, "center")
 
     -- Display the scores
     love.graphics.setFont(scoreFont)
