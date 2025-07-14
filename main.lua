@@ -13,6 +13,10 @@ local player2Score
 local servingPlayer
 local winningPlayer
 local gameMode
+local p1Move
+local p1Speed
+local p2Move
+local p2Speed
 
 local player1
 local player2
@@ -30,10 +34,14 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
-    -- Initialize serving and winning player
+    -- Initialize control variables
     servingPlayer = 1
     winningPlayer = 0
     gameMode = -1
+    p1Move = false
+    p1Speed = 0
+    p2Move = false
+    p2Speed = 0
 
     -- Initialize paddles
     player1 = Paddle(10, 30, PADDLE_WIDTH, PADDLE_HEIGHT)
@@ -59,6 +67,14 @@ end
 
 function love.update(dt)
     if gameState == "play" then
+        -- Moving the paddles for demo or 1 player modes
+        if gameMode == 0 then
+            player1AutomaticMovement()
+            player2AutomaticMovement()
+        elseif gameMode == 1 then
+            player2AutomaticMovement()
+        end
+
         -- Detecting collision with players
         if ball:collides(player1) then
             Sounds.paddleHit:play()
@@ -93,9 +109,16 @@ function love.update(dt)
             Sounds.score:play()
             player2Score = player2Score + 1
             servingPlayer = 1
+            p1Move = false
+            p1Speed = 0
+            player1.dy = 0
+            p2Move = false
+            p2Speed = 0
+            player2.dy = 0
             ball:reset()
             if player2Score == WINNING_POINTS then
                 winningPlayer = 2
+                gameMode = -1
                 gameState = "win"
             else
                 gameState = "serve"
@@ -105,8 +128,15 @@ function love.update(dt)
             player1Score = player1Score + 1
             servingPlayer = 2
             ball:reset("left")
+            p1Move = false
+            p1Speed = 0
+            player1.dy = 0
+            p2Move = false
+            p2Speed = 0
+            player2.dy = 0
             if player1Score == WINNING_POINTS then
                 winningPlayer = 1
+                gameMode = -1
                 gameState = "win"
             else
                 gameState = "serve"
@@ -114,25 +144,19 @@ function love.update(dt)
         end
 
         ball:update(dt)
-
-        if gameMode == 0 then
-            player1AutomaticMovement()
-            player2AutomaticMovement()
-        elseif gameMode == 1 then
-            player1Movement()
-            player2AutomaticMovement()
-        else
-            player1Movement()
-            player2Movement()
-        end
-
-        player1:update(dt)
-        player2:update(dt)
     end
+
+    if gameMode == 1 then
+        player1Movement()
+    elseif gameMode == 2 then
+        player1Movement()
+        player2Movement()
+    end
+
+    player1:update(dt)
+    player2:update(dt)
 end
 
-local p1Move = false
-local p1Speed = 0
 function player1AutomaticMovement()
     local distance = (ball.y + ball.size / 2) - (player1.y + player1.height / 2)
 
@@ -157,8 +181,6 @@ function player1AutomaticMovement()
     end
 end
 
-local p2Move = false
-local p2Speed = 0
 function player2AutomaticMovement()
     local distance = (ball.y + ball.size / 2) - (player2.y + player2.height / 2)
 
@@ -220,7 +242,7 @@ function love.keypressed(key)
         elseif gameState == "win" then
             player1Score = 0
             player2Score = 0
-            gameState = "serve"
+            gameState = "mode"
         end
     elseif key == "1" or key == "kp1" then
         if gameState == "mode" then
