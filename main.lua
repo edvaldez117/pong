@@ -12,6 +12,7 @@ local player1Score
 local player2Score
 local servingPlayer
 local winningPlayer
+local gameMode
 
 local player1
 local player2
@@ -32,10 +33,12 @@ function love.load()
     -- Initialize serving and winning player
     servingPlayer = 1
     winningPlayer = 0
+    gameMode = -1
 
     -- Initialize paddles
     player1 = Paddle(10, 30, PADDLE_WIDTH, PADDLE_HEIGHT)
-    player2 = Paddle(VIRTUAL_WIDTH - PADDLE_WIDTH - 10, VIRTUAL_HEIGHT - PADDLE_HEIGHT - 30, PADDLE_WIDTH, PADDLE_HEIGHT)
+    player2 =
+        Paddle(VIRTUAL_WIDTH - PADDLE_WIDTH - 10, VIRTUAL_HEIGHT - PADDLE_HEIGHT - 30, PADDLE_WIDTH, PADDLE_HEIGHT)
 
     -- Initialize the ball
     ball = Ball(BALL_SIZE)
@@ -94,7 +97,7 @@ function love.update(dt)
             if player2Score == WINNING_POINTS then
                 winningPlayer = 2
                 gameState = "win"
-            else 
+            else
                 gameState = "serve"
             end
         elseif ball.x + ball.size >= VIRTUAL_WIDTH then
@@ -105,24 +108,92 @@ function love.update(dt)
             if player1Score == WINNING_POINTS then
                 winningPlayer = 1
                 gameState = "win"
-            else 
+            else
                 gameState = "serve"
             end
         end
 
         ball:update(dt)
+
+        if gameMode == 0 then
+            player1AutomaticMovement()
+            player2AutomaticMovement()
+        elseif gameMode == 1 then
+            player1Movement()
+            player2AutomaticMovement()
+        else
+            player1Movement()
+            player2Movement()
+        end
+
+        player1:update(dt)
+        player2:update(dt)
+    end
+end
+
+local p1Move = false
+local p1Speed = 0
+function player1AutomaticMovement()
+    local distance = (ball.y + ball.size / 2) - (player1.y + player1.height / 2)
+
+    if not p1Move and ball.dx < 0 then
+        if distance > MAX_DISTANCE then
+            p1Move = true
+            p1Speed = PADDLE_SPEED
+        elseif distance < -MAX_DISTANCE then
+            p1Move = true
+            p1Speed = -PADDLE_SPEED
+        end
     end
 
-    -- Player 1 movement
+    if p1Move then
+        if math.abs(distance) > 5 then
+            player1.dy = p1Speed
+        else
+            p1Move = false
+            player1.dy = 0
+        end
+
+    end
+end
+
+local p2Move = false
+local p2Speed = 0
+function player2AutomaticMovement()
+    local distance = (ball.y + ball.size / 2) - (player2.y + player2.height / 2)
+
+    if not p2Move and ball.dx > 0 then
+        if distance > MAX_DISTANCE then
+            p2Move = true
+            p2Speed = PADDLE_SPEED
+        elseif distance < -MAX_DISTANCE then
+            p2Move = true
+            p2Speed = -PADDLE_SPEED
+        end
+    end
+
+    if p2Move then
+        if math.abs(distance) > 5 then
+            player2.dy = p2Speed
+        else
+            p2Move = false
+            player2.dy = 0
+        end
+
+    end
+end
+
+function player1Movement()
     if love.keyboard.isDown("w") then
         player1.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown("s") then
         player1.dy = PADDLE_SPEED
     else
-        player1.dy = 0        
+        player1.dy = 0
     end
+end
 
-    -- Player 2 movement
+function player2Movement()
     if love.keyboard.isDown("up") then
         player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown("down") then
@@ -130,9 +201,6 @@ function love.update(dt)
     else
         player2.dy = 0
     end
-
-    player1:update(dt)
-    player2:update(dt)
 end
 
 function love.keypressed(key)
@@ -140,7 +208,7 @@ function love.keypressed(key)
         love.event.quit()
     elseif key == "return" or key == "kpenter" then
         if gameState == "start" then
-            gameState = "serve"
+            gameState = "mode"
         elseif gameState == "serve" then
             gameState = "play"
         elseif gameState == "play" then
@@ -152,6 +220,21 @@ function love.keypressed(key)
         elseif gameState == "win" then
             player1Score = 0
             player2Score = 0
+            gameState = "serve"
+        end
+    elseif key == "1" or key == "kp1" then
+        if gameState == "mode" then
+            gameMode = 1
+            gameState = "serve"
+        end
+    elseif key == "2" or key == "kp2" then
+        if gameState == "mode" then
+            gameMode = 2
+            gameState = "serve"
+        end
+    elseif key == "0" or key == "kp0" then
+        if gameState == "mode" then
+            gameMode = 0
             gameState = "serve"
         end
     end
@@ -168,6 +251,9 @@ function love.draw()
     if gameState == "start" then
         love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
         love.graphics.printf("Press Enter to start a game", 0, 30, VIRTUAL_WIDTH, "center")
+    elseif gameState == "mode" then
+        love.graphics.printf("Press keys 1 or 2 to select game mode", 0, 20, VIRTUAL_WIDTH, "center")
+        love.graphics.printf("0 = Demo   1 = 1 Player   2 = 2 Players", 0, 30, VIRTUAL_WIDTH, "center")
     elseif gameState == "serve" then
         love.graphics.printf("Player " .. tostring(servingPlayer) .. " serves!", 0, 20, VIRTUAL_WIDTH, "center")
         love.graphics.printf("Press Enter to serve", 0, 30, VIRTUAL_WIDTH, "center")
@@ -184,7 +270,7 @@ function love.draw()
     -- Display the paddles
     player1:render()
     player2:render()
-    
+
     -- Display the ball
     ball:render()
 

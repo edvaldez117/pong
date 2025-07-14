@@ -16,3 +16,6 @@ BALL_SIZE = 4
 
 -- Points required to win
 WINNING_POINTS = 10
+
+-- Distance
+MAX_DISTANCE = 14
