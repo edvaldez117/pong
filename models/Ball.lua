@@ -1,4 +1,5 @@
 local Class = require "src.lib.class"
+local Sounds = require "src.lib.sounds"
 
 Ball = Class {}
 
@@ -31,18 +32,12 @@ function Ball:update(dt)
     local x = self.x + self.dx * dt
     local y = self.y + self.dy * dt
 
-    if x <= 0 then
-        x = 0
-        self.dx = -self.dx
-    elseif x >= VIRTUAL_WIDTH - self.size then
-        x = VIRTUAL_WIDTH - self.size
-        self.dx = -self.dx
-    end
-
     if y <= 0 then
+        Sounds.wallHit:play()
         y = 0
         self.dy = -self.dy
     elseif y >= VIRTUAL_HEIGHT - self.size then
+        Sounds.wallHit:play()
         y = VIRTUAL_HEIGHT - self.size
         self.dy = -self.dy
     end

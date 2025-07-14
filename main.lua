@@ -1,9 +1,11 @@
 require "configs"
-require "fonts"
 require "models.Paddle"
 require "models.Ball"
 
-push = require "src.lib.push"
+local Fonts = require "src.lib.fonts"
+local Sounds = require "src.lib.sounds"
+
+local push = require "src.lib.push"
 
 local gameState
 local player1Score
@@ -56,6 +58,7 @@ function love.update(dt)
     if gameState == "play" then
         -- Detecting collision with players
         if ball:collides(player1) then
+            Sounds.paddleHit:play()
             ball.x = player1.x + player1.width + 1
             ball.dx = -ball.dx * 1.05
 
@@ -69,6 +72,7 @@ function love.update(dt)
                 ball.dy = 0
             end
         elseif ball:collides(player2) then
+            Sounds.paddleHit:play()
             ball.x = player2.x - ball.size - 1
             ball.dx = -ball.dx * 1.05
 
@@ -83,6 +87,7 @@ function love.update(dt)
 
         -- Detecting if a player scores a point
         if ball.x <= 0 then
+            Sounds.score:play()
             player2Score = player2Score + 1
             servingPlayer = 1
             ball:reset()
@@ -93,6 +98,7 @@ function love.update(dt)
                 gameState = "serve"
             end
         elseif ball.x + ball.size >= VIRTUAL_WIDTH then
+            Sounds.score:play()
             player1Score = player1Score + 1
             servingPlayer = 2
             ball:reset("left")
@@ -158,7 +164,7 @@ function love.draw()
     love.graphics.clear(40 / 255, 45 / 255, 52 / 255, 255 / 255)
 
     -- Display auxiliary text
-    love.graphics.setFont(smallFont)
+    love.graphics.setFont(Fonts.smallFont)
     if gameState == "start" then
         love.graphics.printf("Pong!", 0, 20, VIRTUAL_WIDTH, "center")
         love.graphics.printf("Press Enter to start a game", 0, 30, VIRTUAL_WIDTH, "center")
@@ -171,7 +177,7 @@ function love.draw()
     end
 
     -- Display the scores
-    love.graphics.setFont(scoreFont)
+    love.graphics.setFont(Fonts.scoreFont)
     love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
     love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30, VIRTUAL_HEIGHT / 3)
 
@@ -189,7 +195,7 @@ function love.draw()
 end
 
 function displayFPS()
-    love.graphics.setFont(smallFont)
+    love.graphics.setFont(Fonts.smallFont)
     love.graphics.setColor(0, 1, 0, 1)
     love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), PADDLE_WIDTH + 20, 10)
 end
